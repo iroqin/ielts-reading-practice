@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IELTS Academic Reading Test 292 - Interactive Practice</title>
+  <meta name="description" content="Computer-delivered interactive practice test for IELTS Reading Test 292 with instant scoring, IELTS Band calculation, and evidence explanations.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Top Navigation & Controls Bar -->
+    <header class="header-bar" role="banner">
+      <div class="brand-section">
+        <span class="brand-badge">IELTS Academic</span>
+        <div class="brand-title">
+          Reading Test 292
+          <span class="test-tag">• Full Computer-Delivered Test</span>
+        </div>
+      </div>
+
+      <!-- Passage Navigation Tabs (1, 2, 3) -->
+      <nav class="passage-nav-tabs" id="passage-nav-tabs" aria-label="Passage Selector">
+        <!-- Rendered by app.js -->
+      </nav>
+
+      <!-- Timer & Exam Controls -->
+      <div class="header-controls">
+        <div class="timer-box" id="timer-box" title="Remaining time">
+          <span id="timer-display">60:00</span>
+          <button class="timer-toggle-btn" id="timer-toggle-btn" title="Pause Timer" aria-label="Pause or Resume Timer">⏸</button>
+        </div>
+
+        <div class="btn-icon-group" title="Appearance Settings">
+          <button class="btn-icon-tool" id="btn-theme-toggle" title="Toggle Theme (Light / Sepia / Dark)" aria-label="Toggle Theme">
+            🌓 Theme
+          </button>
+          <button class="btn-icon-tool" id="btn-font-dec" title="Decrease Font Size" aria-label="Decrease Font Size">A-</button>
+          <button class="btn-icon-tool" id="btn-font-inc" title="Increase Font Size" aria-label="Increase Font Size">A+</button>
+        </div>
+
+        <button class="btn-primary" id="btn-submit-test" aria-label="Submit Test">
+          Submit Test
+        </button>
+      </div>
+    </header>
+
+    <!-- Mobile Switcher Tabs (Visible under 860px) -->
+    <div class="mobile-view-toggle">
+      <button class="mobile-view-btn active" id="mobile-tab-passage">📖 Passage Text</button>
+      <button class="mobile-view-btn" id="mobile-tab-questions">📝 Questions & Answers</button>
+    </div>
+
+    <!-- Main Dual-Pane Split Screen Workbench -->
+    <main class="workbench" id="workbench" data-mobile-active="passage" role="main">
+      <!-- Left: Reading Passage Pane -->
+      <section class="passage-pane" id="passage-pane" aria-label="Reading Passage">
+        <!-- Rendered dynamically by app.js -->
+      </section>
+
+      <!-- Resizer Divider -->
+      <div class="split-divider" id="split-divider" title="Drag to resize panes" role="separator" aria-orientation="vertical"></div>
+
+      <!-- Right: Questions Pane -->
+      <section class="questions-pane" id="questions-pane" aria-label="Questions Sheet">
+        <!-- Rendered dynamically by app.js -->
+      </section>
+    </main>
+
+    <!-- Bottom Navigation Bar & Question Palette (1-40) -->
+    <footer class="footer-bar" role="contentinfo">
+      <div class="palette-nav-controls">
+        <button class="btn-nav-step" id="btn-nav-prev" aria-label="Previous Question">
+          ‹ Previous
+        </button>
+        <button class="btn-nav-step" id="btn-flag-toggle" aria-label="Flag Question for Review">
+          ⚐ Flag for Review
+        </button>
+        <button class="btn-nav-step" id="btn-nav-next" aria-label="Next Question">
+          Next ›
+        </button>
+      </div>
+
+      <!-- Question Palette Matrix (1-40) -->
+      <div class="palette-matrix" id="palette-matrix" aria-label="Question Navigation Matrix">
+        <!-- Rendered by app.js: 40 questions -->
+      </div>
+
+      <div class="palette-summary-stats" id="palette-stats">
+        0 of 40 completed
+      </div>
+    </footer>
+  </div>
+
+  <!-- Text Highlighter Floating Toolbar -->
+  <div class="highlighter-toolbar" id="highlighter-toolbar" role="toolbar" aria-label="Highlight Text">
+    <button class="hl-btn hl-yellow" data-color="yellow" title="Yellow Highlight"></button>
+    <button class="hl-btn hl-green" data-color="green" title="Green Highlight"></button>
+    <button class="hl-btn hl-pink" data-color="pink" title="Pink Highlight"></button>
+    <button class="hl-btn hl-blue" data-color="blue" title="Blue Highlight"></button>
+    <button class="hl-btn-action" id="hl-action-clear" title="Remove Highlight">Clear</button>
+  </div>
+
+  <!-- IELTS Score & Band Evaluation Modal -->
+  <div class="modal-overlay" id="score-modal" role="dialog" aria-modal="true" aria-labelledby="modal-score-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-score-title">IELTS Academic Reading Score Report</h2>
+        <button class="btn-icon-tool" id="modal-close-btn" aria-label="Close modal">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Band Score Hero Card -->
+        <div class="score-hero">
+          <div class="score-big-band">
+            <span class="band-number" id="modal-band-display">--</span>
+            <span class="band-label">IELTS Band Score</span>
+            <span style="font-size: 0.85rem; color: var(--color-ink-muted); margin-top: 0.25rem;" id="modal-band-desc">--</span>
+          </div>
+
+          <div class="score-stats-grid">
+            <div class="stat-metric-card">
+              <div class="stat-value" id="modal-raw-score">-- / 40</div>
+              <div class="stat-label">Total Correct</div>
+            </div>
+            <div class="stat-metric-card">
+              <div class="stat-value" id="modal-p1-score">-- / 13</div>
+              <div class="stat-label">Passage 1 Score</div>
+            </div>
+            <div class="stat-metric-card">
+              <div class="stat-value" id="modal-p2-score">-- / 13</div>
+              <div class="stat-label">Passage 2 Score</div>
+            </div>
+            <div class="stat-metric-card" style="grid-column: span 3;">
+              <div class="stat-value" id="modal-p3-score">-- / 14</div>
+              <div class="stat-label">Passage 3 Score</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background-color: var(--color-surface-subtle); padding: 1rem 1.25rem; border-radius: var(--radius-md); font-size: 0.9rem; line-height: 1.5; color: var(--color-ink-muted); border: 1px solid var(--color-border-subtle);">
+          <strong style="color: var(--color-ink);">Review Mode Activated:</strong>
+          You can now review each question directly alongside the reading passages. Each item displays whether you answered correctly, the official answer, the detailed reasoning, and a <strong>"Locate Evidence in Passage"</strong> button that highlights the exact paragraph.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-icon-tool" id="modal-retake-btn" style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 0.45rem 1rem;">
+          🔄 Retake Test
+        </button>
+        <button class="btn-primary" id="modal-review-btn">
+          View Detailed Explanations
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="test-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
