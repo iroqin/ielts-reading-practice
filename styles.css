@@ -866,15 +866,59 @@ button {
 }
 
 /* Paragraph Matching Dropdown */
-.select-paragraph-dropdown {
+.select-paragraph-dropdown,
+.select-feature-dropdown,
+.select-heading-dropdown {
   padding: 0.45rem 0.75rem;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-sm);
   background-color: var(--color-surface);
+  color: var(--color-ink);
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--color-primary);
+  max-width: 100%;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+
+.select-paragraph-dropdown:focus,
+.select-feature-dropdown:focus,
+.select-heading-dropdown:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+.test-switcher-container {
+  display: flex;
+  align-items: center;
+  margin-left: 0.25rem;
+}
+
+.test-selector-select {
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.4rem 2rem 0.4rem 0.75rem;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230b57d0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  transition: all 0.15s ease;
+}
+
+.test-selector-select:hover,
+.test-selector-select:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
 
 /* ==========================================================================
    BOTTOM QUESTION PALETTE & FOOTER

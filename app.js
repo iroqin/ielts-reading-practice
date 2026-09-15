@@ -4,7 +4,32 @@
 (function() {
   "use strict";
 
-  const STORAGE_KEY = "ielts_test_292_saved_state";
+  // Test Catalog
+  const TESTS_CATALOG = {
+    "291": (typeof window !== "undefined" && window.IELTS_TEST_291_DATA) ? window.IELTS_TEST_291_DATA : null,
+    "292": (typeof window !== "undefined" && (window.IELTS_TEST_292_DATA || window.IELTS_TEST_DATA)) ? (window.IELTS_TEST_292_DATA || window.IELTS_TEST_DATA) : null
+  };
+
+  function getActiveTestId() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const qTest = params.get("test");
+      if (qTest && TESTS_CATALOG[qTest]) return qTest;
+      const saved = localStorage.getItem("ielts_selected_test_id");
+      if (saved && TESTS_CATALOG[saved]) return saved;
+    } catch (e) {}
+    return "291"; // Default to Test 291
+  }
+
+  let currentTestId = getActiveTestId();
+
+  function getTestData() {
+    return TESTS_CATALOG[currentTestId] || (typeof window !== "undefined" && (window.IELTS_TEST_291_DATA || window.IELTS_TEST_DATA));
+  }
+
+  function getStorageKey() {
+    return `ielts_test_${currentTestId}_saved_state`;
+  }
 
   // Application State
   const state = {
@@ -13,7 +38,7 @@
     mobileActivePane: "passage", // "passage" or "questions"
     answers: {},
     flags: new Set(),
-    timerSeconds: IELTS_TEST_DATA.timeLimitMinutes * 60,
+    timerSeconds: 60 * 60,
     timerRunning: true,
     timerInterval: null,
     theme: "light",
@@ -45,11 +70,15 @@
     modalRetakeBtn: document.getElementById("modal-retake-btn"),
     highlighterToolbar: document.getElementById("highlighter-toolbar"),
     mobileTogglePassage: document.getElementById("mobile-tab-passage"),
-    mobileToggleQuestions: document.getElementById("mobile-tab-questions")
+    mobileToggleQuestions: document.getElementById("mobile-tab-questions"),
+    testSelector: document.getElementById("test-selector-dropdown")
   };
 
   // Initialize
   function init() {
+    const testData = getTestData();
+    state.timerSeconds = (testData && testData.timeLimitMinutes ? testData.timeLimitMinutes : 60) * 60;
+    syncTestSelectorUI();
     loadSavedState();
     renderPassageTabs();
     renderPassage();
@@ -61,6 +90,52 @@
     initThemeAndFont();
     bindEvents();
     updateUI();
+  }
+
+  function syncTestSelectorUI() {
+    if (dom.testSelector) {
+      dom.testSelector.value = currentTestId;
+    }
+  }
+
+  function switchTest(newTestId) {
+    if (!TESTS_CATALOG[newTestId] || newTestId === currentTestId) return;
+    saveState();
+    if (state.timerInterval) clearInterval(state.timerInterval);
+
+    currentTestId = newTestId;
+    localStorage.setItem("ielts_selected_test_id", newTestId);
+
+    try {
+      const url = new URL(window.location);
+      url.searchParams.set("test", newTestId);
+      window.history.replaceState({}, "", url);
+    } catch (e) {}
+
+    // Reset runtime state
+    state.currentPassageNum = 1;
+    state.activeQuestionId = 1;
+    state.answers = {};
+    state.flags.clear();
+    state.isSubmitted = false;
+    state.scoreResult = null;
+    state.timerRunning = true;
+    const testData = getTestData();
+    state.timerSeconds = (testData && testData.timeLimitMinutes ? testData.timeLimitMinutes : 60) * 60;
+
+    dom.btnSubmit.textContent = "Submit Test";
+    dom.btnSubmit.style.backgroundColor = "";
+
+    loadSavedState();
+    renderPassageTabs();
+    renderPassage();
+    renderQuestions();
+    renderPalette();
+    initTimer();
+    updateUI();
+
+    dom.passagePane.scrollTop = 0;
+    dom.questionsPane.scrollTop = 0;
   }
 
   // Save / Load state
@@ -77,7 +152,7 @@
         isSubmitted: state.isSubmitted,
         scoreResult: state.scoreResult
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(getStorageKey(), JSON.stringify(data));
     } catch (e) {
       console.warn("Could not save to localStorage", e);
     }
@@ -85,7 +160,7 @@
 
   function loadSavedState() {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(getStorageKey());
       if (saved) {
         const parsed = JSON.parse(saved);
         state.answers = parsed.answers || {};
@@ -108,7 +183,9 @@
   // Passage Tabs
   function renderPassageTabs() {
     dom.passageNavTabs.innerHTML = "";
-    IELTS_TEST_DATA.passages.forEach(p => {
+    const testData = getTestData();
+    if (!testData || !testData.passages) return;
+    testData.passages.forEach(p => {
       const btn = document.createElement("button");
       btn.className = `passage-tab-btn ${p.number === state.currentPassageNum ? "active" : ""}`;
       btn.dataset.passage = p.number;
@@ -164,7 +241,8 @@
 
   // Render Passage Content
   function renderPassage() {
-    const passage = IELTS_TEST_DATA.passages.find(p => p.number === state.currentPassageNum);
+    const testData = getTestData();
+    const passage = testData ? testData.passages.find(p => p.number === state.currentPassageNum) : null;
     if (!passage) return;
 
     dom.passagePane.innerHTML = `
@@ -182,7 +260,7 @@
       <div class="passage-content" id="passage-content-area">
         ${passage.paragraphs.map(p => `
           <div class="passage-paragraph" id="para-${p.id}">
-            <span class="para-label">${p.label}</span>
+            ${p.label ? `<span class="para-label">${p.label}</span>` : ""}
             <span class="para-text">${p.text}</span>
           </div>
         `).join("")}
@@ -192,7 +270,8 @@
 
   // Render Questions Pane
   function renderQuestions() {
-    const passage = IELTS_TEST_DATA.passages.find(p => p.number === state.currentPassageNum);
+    const testData = getTestData();
+    const passage = testData ? testData.passages.find(p => p.number === state.currentPassageNum) : null;
     if (!passage) return;
 
     const passageQuestions = getQuestionsForPassage(passage.number);
@@ -313,6 +392,90 @@
           </div>
         `;
       }).join("");
+    } else if (group.type === "matching-features") {
+      contentHtml = `
+        <div class="phrase-bank-card">
+          <div class="phrase-bank-title">List of People and Organisations</div>
+          <div class="phrase-bank-grid">
+            ${group.featureBank.map(item => `
+              <div class="phrase-chip">
+                <span class="phrase-chip-letter">${item.letter}</span>
+                <span>${item.name}</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+        ${group.questions.map(q => {
+          const val = state.answers[q.id] || "";
+          const isFlagged = state.flags.has(q.id);
+
+          return `
+            <div class="question-item ${val ? "is-answered" : ""} ${isFlagged ? "is-flagged" : ""}" id="q-card-${q.id}">
+              <div class="question-header">
+                <div style="display:flex; align-items:center;">
+                  <span class="question-num-tag">${q.id}</span>
+                </div>
+                <button class="question-flag-action ${isFlagged ? "active" : ""}" data-qid="${q.id}">
+                  ${isFlagged ? "🚩 Flagged" : "⚐ Flag"}
+                </button>
+              </div>
+              <div class="question-prompt-text">${q.prompt}</div>
+              <div style="display:flex; align-items:center; gap:0.75rem; margin-top:0.5rem;">
+                <label style="font-size:0.85rem; font-weight:600; color:var(--color-ink-muted);">Select Person / Organisation:</label>
+                <select class="select-feature-dropdown" data-qid="${q.id}" ${state.isSubmitted ? "disabled" : ""}>
+                  <option value="">-- Choose (A–F) --</option>
+                  ${group.featureBank.map(f => `
+                    <option value="${f.letter}" ${val === f.letter ? "selected" : ""}>${f.letter} - ${f.name}</option>
+                  `).join("")}
+                </select>
+              </div>
+              <div class="q-explanation-slot" id="explanation-slot-${q.id}"></div>
+            </div>
+          `;
+        }).join("")}
+      `;
+    } else if (group.type === "matching-headings") {
+      contentHtml = `
+        <div class="phrase-bank-card">
+          <div class="phrase-bank-title">List of Headings</div>
+          <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.6rem;">
+            ${group.headingBank.map(item => `
+              <div class="phrase-chip" style="justify-content:flex-start; text-align:left; padding:0.4rem 0.6rem;">
+                <span class="phrase-chip-letter" style="min-width:2.2rem; text-align:center;">${item.numeral}</span>
+                <span>${item.text}</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+        ${group.questions.map(q => {
+          const val = state.answers[q.id] || "";
+          const isFlagged = state.flags.has(q.id);
+
+          return `
+            <div class="question-item ${val ? "is-answered" : ""} ${isFlagged ? "is-flagged" : ""}" id="q-card-${q.id}">
+              <div class="question-header">
+                <div style="display:flex; align-items:center;">
+                  <span class="question-num-tag">${q.id}</span>
+                </div>
+                <button class="question-flag-action ${isFlagged ? "active" : ""}" data-qid="${q.id}">
+                  ${isFlagged ? "🚩 Flagged" : "⚐ Flag"}
+                </button>
+              </div>
+              <div class="question-prompt-text" style="font-weight:700; font-size:1rem; color:var(--color-primary);">${q.prompt}</div>
+              <div style="display:flex; align-items:center; gap:0.75rem; margin-top:0.5rem;">
+                <label style="font-size:0.85rem; font-weight:600; color:var(--color-ink-muted);">Select Heading:</label>
+                <select class="select-heading-dropdown" data-qid="${q.id}" ${state.isSubmitted ? "disabled" : ""}>
+                  <option value="">-- Choose Heading (i–xii) --</option>
+                  ${group.headingBank.map(h => `
+                    <option value="${h.numeral}" ${val.toLowerCase() === h.numeral.toLowerCase() ? "selected" : ""}>${h.numeral} - ${h.text}</option>
+                  `).join("")}
+                </select>
+              </div>
+              <div class="q-explanation-slot" id="explanation-slot-${q.id}"></div>
+            </div>
+          `;
+        }).join("")}
+      `;
     } else if (group.type === "multi-choice-double") {
       const pair = group.pairIds; // e.g. [20, 21]
       const ans1 = state.answers[pair[0]] || "";
@@ -494,7 +657,7 @@
     });
 
     // Dropdowns (Paragraph matching & Phrase bank)
-    dom.questionsPane.querySelectorAll(".select-paragraph-dropdown, .select-phrase-dropdown").forEach(select => {
+    dom.questionsPane.querySelectorAll(".select-paragraph-dropdown, .select-phrase-dropdown, .select-feature-dropdown, .select-heading-dropdown").forEach(select => {
       select.addEventListener("change", (e) => {
         const qid = parseInt(e.target.dataset.qid, 10);
         const val = e.target.value;
@@ -856,6 +1019,13 @@
 
   // Event bindings
   function bindEvents() {
+    // Test selector dropdown
+    if (dom.testSelector) {
+      dom.testSelector.addEventListener("change", (e) => {
+        switchTest(e.target.value);
+      });
+    }
+
     // Nav Prev / Next buttons
     dom.btnPrev.addEventListener("click", () => {
       if (state.activeQuestionId > 1) {
@@ -887,7 +1057,7 @@
       enterReviewMode();
     });
     dom.modalRetakeBtn.addEventListener("click", () => {
-      if (confirm("Are you sure you want to reset all answers and retake Test 292?")) {
+      if (confirm(`Are you sure you want to reset all answers and retake Test ${currentTestId}?`)) {
         resetTest();
       }
     });
@@ -958,7 +1128,11 @@
     let rawScore = 0;
     const questionEvaluations = {};
     const passageScores = { 1: 0, 2: 0, 3: 0 };
-    const passageTotals = { 1: 13, 2: 13, 3: 14 };
+    const passageTotals = {
+      1: getQuestionsForPassage(1).length,
+      2: getQuestionsForPassage(2).length,
+      3: getQuestionsForPassage(3).length
+    };
 
     // Get flat list of all 40 questions
     const allQuestions = getAllQuestions();
@@ -967,7 +1141,7 @@
       const userAns = (state.answers[q.id] || "").trim();
       let isCorrect = false;
 
-      if (q.type === "tfng" || q.type === "ynng" || q.type === "match-para" || q.type === "mcq" || q.type === "summary-letter") {
+      if (q.type === "tfng" || q.type === "ynng" || q.type === "match-para" || q.type === "mcq" || q.type === "summary-letter" || q.type === "match-feat" || q.type === "match-heading") {
         isCorrect = userAns.toUpperCase() === q.correctAnswer.toUpperCase();
       } else if (q.type === "blank") {
         const cleanUser = userAns.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -1009,7 +1183,8 @@
       };
     });
 
-    const bandInfo = IELTS_TEST_DATA.calculateBandScore(rawScore);
+    const testData = getTestData();
+    const bandInfo = (testData && testData.calculateBandScore) ? testData.calculateBandScore(rawScore) : { band: "--", description: "", level: "" };
 
     return {
       rawScore: rawScore,
@@ -1104,10 +1279,11 @@
   }
 
   function resetTest() {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(getStorageKey());
     state.answers = {};
     state.flags.clear();
-    state.timerSeconds = IELTS_TEST_DATA.timeLimitMinutes * 60;
+    const testData = getTestData();
+    state.timerSeconds = (testData && testData.timeLimitMinutes ? testData.timeLimitMinutes : 60) * 60;
     state.timerRunning = true;
     state.isSubmitted = false;
     state.scoreResult = null;
@@ -1127,7 +1303,9 @@
 
   // Helpers
   function getQuestionsForPassage(passageNum) {
-    const p = IELTS_TEST_DATA.passages.find(pass => pass.number === passageNum);
+    const testData = getTestData();
+    if (!testData || !testData.passages) return [];
+    const p = testData.passages.find(pass => pass.number === passageNum);
     if (!p) return [];
 
     const list = [];
@@ -1143,8 +1321,10 @@
   }
 
   function getAllQuestions() {
+    const testData = getTestData();
+    if (!testData || !testData.passages) return [];
     const list = [];
-    IELTS_TEST_DATA.passages.forEach(p => {
+    testData.passages.forEach(p => {
       p.questionGroups.forEach(g => {
         if (g.questions) {
           g.questions.forEach(q => list.push(q));
@@ -1176,9 +1356,13 @@
   }
 
   function getPassageNumberForQuestion(qid) {
-    if (qid <= 13) return 1;
-    if (qid <= 26) return 2;
-    return 3;
+    const testData = getTestData();
+    if (!testData || !testData.passages) return 1;
+    for (const p of testData.passages) {
+      const pQs = getQuestionsForPassage(p.number);
+      if (pQs.some(q => q.id === qid)) return p.number;
+    }
+    return 1;
   }
 
   function getPairKeyForQuestion(qid) {

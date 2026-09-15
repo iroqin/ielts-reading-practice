@@ -739,3 +739,7 @@ const IELTS_TEST_DATA = {
     return { band: "2.0", description: "Non User", level: "A0" };
   }
 };
+
+if (typeof window !== "undefined") {
+  window.IELTS_TEST_292_DATA = IELTS_TEST_DATA;
+}

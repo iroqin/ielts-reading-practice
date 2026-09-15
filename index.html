@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IELTS Academic Reading Test 292 - Interactive Practice</title>
-  <meta name="description" content="Computer-delivered interactive practice test for IELTS Reading Test 292 with instant scoring, IELTS Band calculation, and evidence explanations.">
+  <title>IELTS Academic Reading Practice - Tests 291 & 292</title>
+  <meta name="description" content="Authentic computer-delivered interactive practice test for IELTS Reading Tests 291 and 292 with instant scoring, band calculation, and evidence explanations.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,9 +14,11 @@
     <header class="header-bar" role="banner">
       <div class="brand-section">
         <span class="brand-badge">IELTS Academic</span>
-        <div class="brand-title">
-          Reading Test 292
-          <span class="test-tag">• Full Computer-Delivered Test</span>
+        <div class="test-switcher-container">
+          <select id="test-selector-dropdown" class="test-selector-select" aria-label="Select IELTS Practice Test">
+            <option value="291">Reading Test 291 (History • Sequestration • Stradivarius)</option>
+            <option value="292">Reading Test 292 (Tennis Rackets • Pirates • Misinformation)</option>
+          </select>
         </div>
       </div>
 
@@ -157,6 +159,7 @@
   </div>
 
   <!-- Scripts -->
+  <script src="test-291-data.js"></script>
   <script src="test-data.js"></script>
   <script src="app.js"></script>
 </body>
