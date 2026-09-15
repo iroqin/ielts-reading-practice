@@ -7,7 +7,8 @@
   // Test Catalog
   const TESTS_CATALOG = {
     "291": (typeof window !== "undefined" && window.IELTS_TEST_291_DATA) ? window.IELTS_TEST_291_DATA : null,
-    "292": (typeof window !== "undefined" && (window.IELTS_TEST_292_DATA || window.IELTS_TEST_DATA)) ? (window.IELTS_TEST_292_DATA || window.IELTS_TEST_DATA) : null
+    "292": (typeof window !== "undefined" && (window.IELTS_TEST_292_DATA || window.IELTS_TEST_DATA)) ? (window.IELTS_TEST_292_DATA || window.IELTS_TEST_DATA) : null,
+    "293": (typeof window !== "undefined" && window.IELTS_TEST_293_DATA) ? window.IELTS_TEST_293_DATA : null
   };
 
   function getActiveTestId() {

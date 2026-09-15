@@ -66,3 +66,10 @@ Your new test will instantly render with the full computer-delivered interface, 
 - **Passage 3**: *The persistence and peril of misinformation* (Questions 27–40: Multiple Choice, Summary with Phrase Bank, Yes / No / Not Given)
 - Complete with official answers, accepted spelling variants, and sentence-by-sentence explanations.
 
+### 🏭 IELTS Reading Test 293
+- **Passage 1**: *The Industrial Revolution in Britain* (Questions 1–13: Notes Completion, True / False / Not Given)
+- **Passage 2**: *Athletes and stress* (Questions 14–26: Paragraph Information Matching, Sentence Completion, Choose Two Letters A–E)
+- **Passage 3**: *An inquiry into the existence of the gifted child* (Questions 27–40: Summary with Phrase Bank, Yes / No / Not Given, Multiple Choice)
+- Complete with official answers, accepted spelling variants, and sentence-by-sentence explanations.
+
+
